@@ -2,6 +2,8 @@
 
 A Streamlit-based AI chatbot with voice input capability, powered by Google Gemini API.
 
+![AI Voice Assistant Screenshot](image.png)
+
 ## Features
 
 - **Voice Input**: Record your voice and have it transcribed automatically
