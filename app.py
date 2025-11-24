@@ -5,6 +5,10 @@ import os
 from audio_recorder_streamlit import audio_recorder
 import speech_recognition as sr
 import tempfile
+import edge_tts
+import asyncio
+from io import BytesIO
+import base64
 
 # Load environment variables
 load_dotenv()
@@ -17,16 +21,212 @@ model = genai.GenerativeModel('gemini-2.5-flash')
 
 # Page configuration
 st.set_page_config(
-    page_title="AI Assistant",
-    page_icon="🤖",
-    layout="centered"
+    page_title="AI Voice Assistant",
+    page_icon="✨",
+    layout="centered",
+    initial_sidebar_state="expanded"
 )
 
-# Minimal CSS
+# Modern CSS for sleek interface
 st.markdown("""
 <style>
+    /* Main container */
     .main .block-container {
         max-width: 800px;
+        padding-top: 2rem;
+    }
+
+    /* Global white theme with dark shadows */
+    .main {
+        background: #ffffff;
+    }
+
+    [data-testid="stAppViewContainer"] {
+        background: #f8f9fa;
+    }
+
+    [data-testid="stHeader"] {
+        background: #ffffff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Modern audio container */
+    .audio-container {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 16px;
+        padding: 16px 20px;
+        margin: 12px 0 20px 0;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        transition: all 0.2s ease;
+    }
+    .audio-container:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+        transform: translateY(-1px);
+    }
+    .audio-label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #6366f1;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .audio-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #e0e7ff, transparent);
+        margin: 4px 0 14px 0;
+    }
+
+    /* Button styling */
+    .stButton > button {
+        border-radius: 10px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    .stButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Sidebar styling with shadow */
+    [data-testid="stSidebar"] {
+        background: #f0f0f0;
+        box-shadow: 6px 0 25px rgba(0, 0, 0, 0.15);
+    }
+
+    /* All text black */
+    .main, .main p, .main span, .main label, .main div,
+    [data-testid="stSidebar"], [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] span, [data-testid="stSidebar"] label {
+        color: #000000 !important;
+    }
+
+
+    /* Center mic button in its column */
+    [data-testid="stHorizontalBlock"] > div:first-child {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    /* Invert black background to light grey */
+    iframe[title="audio_recorder_streamlit.audio_recorder"] {
+        filter: invert(0.85);
+        border-radius: 8px;
+    }
+
+    /* Fix button backgrounds - white with dark text */
+    .stButton > button {
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+    .stButton > button:hover {
+        background: #f0f0f0 !important;
+    }
+
+    /* Chat message styling */
+    .stChatMessage {
+        border-radius: 16px !important;
+        margin-bottom: 8px;
+    }
+    .stChatMessage p, .stChatMessage span, .stChatMessage div {
+        color: #000000 !important;
+    }
+
+    /* Input styling - grey background with BLACK text */
+    .stChatInput > div {
+        border-radius: 12px !important;
+        background: #e0e0e0 !important;
+    }
+    .stChatInput textarea {
+        background: #e0e0e0 !important;
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        caret-color: #000000 !important;
+    }
+    .stChatInput [data-baseweb="base-input"] {
+        background: #e0e0e0 !important;
+    }
+    .stChatInput input {
+        background: #e0e0e0 !important;
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        caret-color: #000000 !important;
+    }
+    .stChatInput div[data-baseweb] {
+        background: #e0e0e0 !important;
+    }
+    .stChatInput * {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+    }
+    /* Force black text on all input-related elements */
+    [data-testid="stChatInput"] textarea,
+    [data-testid="stChatInput"] input,
+    [data-testid="stChatInput"] [contenteditable] {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        caret-color: #000000 !important;
+    }
+    .stChatInput ::placeholder {
+        color: #666666 !important;
+        -webkit-text-fill-color: #666666 !important;
+    }
+
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        font-weight: 600;
+        border-radius: 10px;
+    }
+
+    /* Info boxes */
+    .stAlert {
+        border-radius: 12px;
+        border: none;
+    }
+
+    /* Select boxes - force grey background */
+    .stSelectbox [data-baseweb="select"] {
+        background: #e0e0e0 !important;
+    }
+    .stSelectbox [data-baseweb="select"] > div {
+        background: #e0e0e0 !important;
+        color: #000000 !important;
+    }
+    .stSelectbox div[data-baseweb="select"] span {
+        color: #000000 !important;
+    }
+
+    /* Spinner */
+    .stSpinner > div {
+        border-color: #6366f1 !important;
+    }
+
+    /* Hide default audio margin */
+    .stAudio {
+        margin-top: 0 !important;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #a1a1a1;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -53,6 +253,14 @@ PERSONALITIES = {
         "system_prompt": "You are a friendly gaming helper. Provide game tips, strategies, walkthroughs, and engage in discussions about video games. Help users improve their gaming skills and discover new games they might enjoy.",
         "icon": "🎮"
     }
+}
+
+# Available TTS voices
+TTS_VOICES = {
+    "Sophisticated Male": "en-GB-RyanNeural",
+    "Sophisticated Female": "en-GB-SoniaNeural",
+    "Regular Man": "en-US-GuyNeural",
+    "Regular Woman": "en-US-JennyNeural",
 }
 
 def transcribe_audio(audio_bytes):
@@ -192,9 +400,54 @@ def display_waveform(audio_bytes):
         except:
             return f'<div style="color: #9ca3af; text-align: center; padding: 20px;">Audio recorded successfully</div>'
 
+async def generate_tts_async(text, voice="en-US-AriaNeural"):
+    """Async function to generate TTS using edge-tts."""
+    communicate = edge_tts.Communicate(text, voice)
+    audio_buffer = BytesIO()
+    async for chunk in communicate.stream():
+        if chunk["type"] == "audio":
+            audio_buffer.write(chunk["data"])
+    audio_buffer.seek(0)
+    return audio_buffer.getvalue()
+
+def generate_tts_audio(text, voice=None, retry_count=0):
+    """Generate TTS audio from text using edge-tts with retry mechanism."""
+    try:
+        # Truncate very long messages for TTS
+        original_length = len(text)
+        if original_length > 1000:
+            text = text[:1000] + "..."
+            st.session_state.tts_truncated = True
+        elif original_length > 500:
+            st.session_state.tts_long_message = True
+
+        # Get voice from session state if not provided
+        if voice is None:
+            voice = st.session_state.get("selected_voice", "en-GB-RyanNeural")
+
+        # Run async function
+        audio_bytes = asyncio.run(generate_tts_async(text, voice))
+
+        if audio_bytes:
+            return audio_bytes
+        else:
+            st.session_state.tts_error = "Audio generation produced empty result"
+            return None
+    except asyncio.TimeoutError:
+        if retry_count < 2:
+            return generate_tts_audio(text, voice, retry_count + 1)
+        st.session_state.tts_error = "Audio generation timed out. Please try again."
+        return None
+    except Exception as e:
+        if retry_count < 1:
+            return generate_tts_audio(text, voice, retry_count + 1)
+        st.session_state.tts_error = f"Audio generation failed: {str(e)}"
+        return None
+
 # Sidebar
 with st.sidebar:
-    st.title("🤖 AI Assistant")
+    st.markdown("### ✨ AI Assistant")
+    st.caption("Powered by Gemini AI")
     st.markdown("---")
 
     st.subheader("Choose Personality")
@@ -208,24 +461,62 @@ with st.sidebar:
     st.info(f"{personality_icon} {PERSONALITIES[selected_personality]['description']}")
 
     st.markdown("---")
-    st.subheader("About")
-    st.markdown("""
-    This AI chatbot is powered by:
-    - **Streamlit** for the web interface
-    - **Google Gemini** for AI responses
-    - **Voice Input** for hands-free interaction
 
-    Speak or type your message!
-    """)
+    # Voice settings in expander to reduce clutter
+    with st.expander("🔊 Voice Settings", expanded=False):
+        selected_voice_name = st.selectbox(
+            "Select TTS voice:",
+            options=list(TTS_VOICES.keys()),
+            index=0,
+            help="Choose the voice for AI responses"
+        )
+        st.session_state.selected_voice = TTS_VOICES[selected_voice_name]
+
+        st.markdown("**Preview voices:**")
+        preview_text = "Hello, how are you?"
+
+        # Responsive columns for preview buttons
+        col1, col2 = st.columns(2)
+        voice_list = list(TTS_VOICES.items())
+
+        for idx, (voice_name, voice_id) in enumerate(voice_list):
+            with col1 if idx % 2 == 0 else col2:
+                if st.button(f"▶ {voice_name.split(' ')[0]}", key=f"preview_{voice_id}", use_container_width=True):
+                    with st.spinner(f"🎵 Loading {voice_name.split(' ')[0]}..."):
+                        preview_audio = generate_tts_audio(preview_text, voice_id)
+                        if preview_audio:
+                            audio_base64 = base64.b64encode(preview_audio).decode()
+                            audio_html = f'''
+                                <audio autoplay style="width: 100%;">
+                                    <source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3">
+                                </audio>
+                            '''
+                            st.markdown(audio_html, unsafe_allow_html=True)
+
+        st.info("💡 Sophisticated voices have a British accent, Regular voices are American.")
+
+    st.markdown("---")
+    st.caption("**About**")
+    st.markdown("""
+    <div style="font-size: 0.85rem; color: #64748b; line-height: 1.6;">
+    Built with <strong>Streamlit</strong> + <strong>Gemini AI</strong><br>
+    Voice-enabled for hands-free chat
+    </div>
+    """, unsafe_allow_html=True)
 
     if st.button("🗑️ Clear Chat History"):
         st.session_state.messages = []
         st.session_state.last_audio_hash = ""
         st.session_state.recorder_key = 0
+        st.session_state.tts_audio = {}
+        st.session_state.processing = False
+        st.session_state.last_audio_bytes = None
+        st.session_state.tts_error = None
         st.rerun()
 
 # Main chat interface
-st.title("💬 Chat with AI")
+st.markdown("## 💬 Chat with AI")
+st.caption("Type a message or use voice input")
 
 # Initialize session state
 if "messages" not in st.session_state:
@@ -237,18 +528,71 @@ if "last_audio_hash" not in st.session_state:
 if "recorder_key" not in st.session_state:
     st.session_state.recorder_key = 0
 
-# Display chat messages
-for message in st.session_state.messages:
+if "tts_audio" not in st.session_state:
+    st.session_state.tts_audio = {}
+
+if "processing" not in st.session_state:
+    st.session_state.processing = False
+
+if "last_audio_bytes" not in st.session_state:
+    st.session_state.last_audio_bytes = None
+
+if "tts_error" not in st.session_state:
+    st.session_state.tts_error = None
+
+if "tts_truncated" not in st.session_state:
+    st.session_state.tts_truncated = False
+
+if "tts_long_message" not in st.session_state:
+    st.session_state.tts_long_message = False
+
+# Display any TTS notifications
+if st.session_state.tts_error:
+    st.error(f"❌ {st.session_state.tts_error}")
+    st.session_state.tts_error = None
+
+if st.session_state.tts_truncated:
+    st.warning("⚠️ Long message was truncated for audio. Full text shown above.")
+    st.session_state.tts_truncated = False
+
+if st.session_state.tts_long_message:
+    st.session_state.tts_long_message = False
+
+# Display chat messages with TTS audio players
+for i, message in enumerate(st.session_state.messages):
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Input section at bottom - mic next to text input
-col1, col2 = st.columns([1, 15])
+    # Display audio player OUTSIDE chat message container for assistant messages
+    if message["role"] == "assistant":
+        if i in st.session_state.tts_audio:
+            # Use HTML audio with autoplay for automatic playback
+            audio_base64 = base64.b64encode(st.session_state.tts_audio[i]).decode()
+            # Only autoplay the most recent message
+            is_latest = (i == len(st.session_state.messages) - 1)
+            autoplay_attr = "autoplay" if is_latest else ""
+
+            # Polished audio container with divider and label
+            audio_html = f'''
+                <div class="audio-container">
+                    <div class="audio-label">
+                        🔊 AI Response Audio
+                    </div>
+                    <div class="audio-divider"></div>
+                    <audio controls {autoplay_attr} style="width: 100%;">
+                        <source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3">
+                    </audio>
+                </div>
+            '''
+            st.markdown(audio_html, unsafe_allow_html=True)
+
+# Input section at bottom - mic next to text input (mobile-friendly ratios)
+col1, col2 = st.columns([1, 12])
 
 with col1:
     audio_bytes = audio_recorder(
         text="",
-        recording_color="#374151",
+        recording_color="#10bbbb",
         neutral_color="#6b7280",
         icon_size="1x",
         pause_threshold=2.0,
@@ -257,7 +601,7 @@ with col1:
     )
 
 with col2:
-    prompt = st.chat_input("Type or use mic...")
+    prompt = st.chat_input("Type your message or click the mic to speak...", key="chat_input")
 
 # Process voice input
 if audio_bytes:
@@ -280,6 +624,18 @@ if audio_bytes:
                 with st.spinner("Thinking..."):
                     response = generate_ai_response(transcribed_text, selected_personality)
 
+                # Generate TTS for the response
+                msg_index = len(st.session_state.messages) - 1
+                if msg_index not in st.session_state.tts_audio:
+                    # Show warning for long messages
+                    if len(response) > 500:
+                        st.info("📝 Long message - audio generation may take a moment...")
+
+                    with st.spinner("🎵 Generating audio..."):
+                        audio_data = generate_tts_audio(response)
+                        if audio_data:
+                            st.session_state.tts_audio[msg_index] = audio_data
+
                 st.session_state.recorder_key += 1
                 st.rerun()
             else:
@@ -295,6 +651,18 @@ if prompt:
         with st.spinner("🤔 Thinking..."):
             response = generate_ai_response(prompt, selected_personality)
             st.markdown(response)
+
+    # Generate TTS for the response
+    msg_index = len(st.session_state.messages) - 1
+    if msg_index not in st.session_state.tts_audio:
+        # Show warning for long messages
+        if len(response) > 500:
+            st.info("📝 Long message - audio generation may take a moment...")
+
+        with st.spinner("🎵 Generating audio..."):
+            audio_data = generate_tts_audio(response)
+            if audio_data:
+                st.session_state.tts_audio[msg_index] = audio_data
 
     st.rerun()
 
