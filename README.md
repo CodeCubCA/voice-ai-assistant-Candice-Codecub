@@ -6,6 +6,12 @@ An intelligent AI chatbot with voice input and output capabilities, powered by G
 
 ![AI Voice Assistant Screenshot](image.png)
 
+## 🚀 Live Deployments
+
+Try the app live on multiple platforms:
+- **Hugging Face Spaces**: [https://huggingface.co/spaces/Candcie/voice-ai-assistant](https://huggingface.co/spaces/Candcie/voice-ai-assistant)
+- **Render**: Coming soon
+
 ## Features
 
 - **Voice Input**: Record your voice using the built-in audio recorder with automatic transcription
