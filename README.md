@@ -9,8 +9,8 @@ An intelligent AI chatbot with voice input and output capabilities, powered by G
 ## 🚀 Live Deployments
 
 Try the app live on multiple platforms:
+- **Render**: [https://voice-ai-assistant-candice-codecub.onrender.com](https://voice-ai-assistant-candice-codecub.onrender.com)
 - **Hugging Face Spaces**: [https://huggingface.co/spaces/Candcie/voice-ai-assistant](https://huggingface.co/spaces/Candcie/voice-ai-assistant)
-- **Render**: Coming soon
 
 ## Features
 
