@@ -178,10 +178,29 @@ st.markdown("""
         -webkit-text-fill-color: #666666 !important;
     }
 
-    /* Expander styling */
+    /* Expander styling - force black text and arrows */
     .streamlit-expanderHeader {
         font-weight: 600;
         border-radius: 10px;
+        color: #000000 !important;
+    }
+    .streamlit-expanderHeader p,
+    .streamlit-expanderHeader span,
+    .streamlit-expanderHeader div,
+    .streamlit-expanderHeader svg,
+    .streamlit-expanderHeader path,
+    [data-testid="stExpander"] summary,
+    [data-testid="stExpander"] summary p,
+    [data-testid="stExpander"] summary span,
+    [data-testid="stExpander"] summary div {
+        color: #000000 !important;
+        fill: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+    }
+    [data-testid="stExpander"] svg,
+    [data-testid="stExpander"] svg path {
+        fill: #000000 !important;
+        stroke: #000000 !important;
     }
 
     /* Info boxes */
@@ -190,7 +209,7 @@ st.markdown("""
         border: none;
     }
 
-    /* Select boxes - force grey background */
+    /* Select boxes - force grey background with black text and arrows */
     .stSelectbox [data-baseweb="select"] {
         background: #e0e0e0 !important;
     }
@@ -200,6 +219,14 @@ st.markdown("""
     }
     .stSelectbox div[data-baseweb="select"] span {
         color: #000000 !important;
+    }
+    .stSelectbox svg,
+    .stSelectbox svg path {
+        fill: #000000 !important;
+        stroke: #000000 !important;
+    }
+    [data-baseweb="select"] svg {
+        fill: #000000 !important;
     }
 
     /* Spinner */
@@ -227,6 +254,70 @@ st.markdown("""
     }
     ::-webkit-scrollbar-thumb:hover {
         background: #a1a1a1;
+    }
+
+    /* Force expander icon and ALL expander content to be black */
+    details summary {
+        color: #000000 !important;
+    }
+    details summary * {
+        color: #000000 !important;
+        fill: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+    }
+    details summary svg,
+    details summary svg * {
+        fill: #000000 !important;
+        stroke: #000000 !important;
+    }
+
+    /* NUCLEAR OPTION - Force EVERYTHING to black */
+    /* Sidebar - all text black */
+    [data-testid="stSidebar"] * {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+    }
+
+    /* All SVG icons in sidebar */
+    [data-testid="stSidebar"] svg,
+    [data-testid="stSidebar"] svg path,
+    [data-testid="stSidebar"] svg circle,
+    [data-testid="stSidebar"] svg rect {
+        fill: #000000 !important;
+        stroke: #000000 !important;
+    }
+
+    /* All buttons - black text */
+    button, button * {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+    }
+
+    /* All labels and captions */
+    label, label *,
+    .stCaption, .stCaption *,
+    h1, h2, h3, h4, h5, h6,
+    p, span, div[class*="st"] {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+    }
+
+    /* All expanders - brute force */
+    [data-testid="stExpander"],
+    [data-testid="stExpander"] *,
+    .streamlit-expanderHeader,
+    .streamlit-expanderHeader * {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        fill: #000000 !important;
+    }
+
+    /* Override ANY white or light colored text */
+    [style*="color: white"],
+    [style*="color: #fff"],
+    [style*="color: rgb(255"] {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
     }
 </style>
 """, unsafe_allow_html=True)

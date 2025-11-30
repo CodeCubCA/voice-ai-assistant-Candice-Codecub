@@ -79,15 +79,31 @@ An intelligent AI chatbot with voice input and output capabilities, powered by G
 ### Clear History
 - Click "Clear Chat History" in the sidebar to start fresh
 
+## Deployment
+
+For deploying to Render or other cloud platforms, see [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
+
+**Quick Deploy to Render:**
+1. Push to GitHub
+2. Connect to Render
+3. Add `GEMINI_API_KEY` as environment variable
+4. Deploy with: `streamlit run app.py --server.port $PORT --server.address 0.0.0.0`
+
 ## Project Structure
 
 ```
 Voice Ai Assistent/
 ├── app.py              # Main application
+├── components/         # Custom components
+│   ├── __init__.py
+│   └── audio_waveform.py
 ├── requirements.txt    # Python dependencies
+├── packages.txt        # System dependencies
+├── render.yaml         # Render deployment config
 ├── .env               # API key (not tracked)
 ├── .env.example       # Example environment file
 ├── .gitignore         # Git ignore rules
+├── DEPLOYMENT.md      # Deployment guide
 ├── image.png          # Screenshot
 └── README.md          # This file
 ```

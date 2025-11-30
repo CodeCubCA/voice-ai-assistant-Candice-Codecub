@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In-Game Computer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Boot Screen -->
+    <div id="boot-screen" class="boot-screen bios-mode">
+        <div class="bios-text">
+            <div id="bios-output"></div>
+        </div>
+        <div class="windows-loader hidden" id="windows-loader">
+            <div class="windows-logo">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-screen hidden">
+        <div class="login-container">
+            <div class="user-avatar">
+                <div class="avatar-icon"></div>
+            </div>
+            <div class="username">Player</div>
+            <input type="password" id="password-input" class="password-input" placeholder="Password" autocomplete="off">
+            <div class="login-hint">Hint: Press Enter or click the arrow</div>
+            <button id="login-btn" class="login-btn">→</button>
+            <div class="login-loading">
+                <div class="login-spinner"></div>
+            </div>
+        </div>
+        <div class="login-footer">
+            <div class="power-options">
+                <button class="power-btn" title="Sleep">⏾</button>
+                <button class="power-btn" title="Shut down">⏻</button>
+                <button class="power-btn" title="Restart">↻</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop -->
+    <div id="desktop" class="desktop hidden">
+        <!-- Desktop Icons -->
+        <div class="desktop-icons">
+            <div class="desktop-icon" data-app="rcfc">
+                <div class="icon-image rcfc-icon"></div>
+                <span>RCFC</span>
+            </div>
+            <div class="desktop-icon" data-app="messages">
+                <div class="icon-image messages-icon"></div>
+                <span>Messages</span>
+            </div>
+            <div class="desktop-icon" data-app="browser">
+                <div class="icon-image browser-icon"></div>
+                <span>Browser</span>
+            </div>
+            <div class="desktop-icon" data-app="notepad">
+                <div class="icon-image notepad-icon" style="background-image: url('data:image/png;base64,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');"></div>
+                <span>Notepad</span>
+            </div>
+        </div>
+
+        <!-- Window Container -->
+        <div id="window-container"></div>
+
+        <!-- Taskbar -->
+        <div class="taskbar">
+            <button class="start-btn" id="start-btn">
+                <div class="start-icon"></div>
+            </button>
+            <div class="taskbar-apps" id="taskbar-apps"></div>
+            <div class="system-tray">
+                <div class="tray-icons">
+                    <span class="tray-icon" title="Network">📶</span>
+                    <span class="tray-icon" title="Sound">🔊</span>
+                    <span class="tray-icon" title="Battery">🔋</span>
+                </div>
+                <div class="datetime" id="datetime"></div>
+            </div>
+        </div>
+
+        <!-- Start Menu -->
+        <div id="start-menu" class="start-menu hidden">
+            <div class="start-menu-left">
+                <input type="text" class="start-menu-search" placeholder="Type here to search">
+                <div class="start-menu-section">
+                    <div class="start-menu-section-title">Pinned</div>
+                    <div class="start-menu-grid">
+                        <div class="start-menu-item" data-app="rcfc">
+                            <div class="menu-icon rcfc-icon"></div>
+                            <span>RCFC</span>
+                        </div>
+                        <div class="start-menu-item" data-app="messages">
+                            <div class="menu-icon messages-icon"></div>
+                            <span>Messages</span>
+                        </div>
+                        <div class="start-menu-item" data-app="browser">
+                            <div class="menu-icon browser-icon"></div>
+                            <span>Browser</span>
+                        </div>
+                        <div class="start-menu-item" data-app="notepad">
+                            <div class="menu-icon notepad-icon"></div>
+                            <span>Notepad</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="start-menu-footer">
+                <div class="start-menu-user">
+                    <div class="user-avatar-small"></div>
+                    <span>Player</span>
+                </div>
+                <button class="start-power-btn" id="shutdown-btn">
+                    <span>⏻</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="context-menu" class="context-menu hidden">
+        <div class="context-item" data-action="refresh">Refresh</div>
+        <div class="context-separator"></div>
+        <div class="context-item" data-action="newfile">New → Text Document</div>
+        <div class="context-item" data-action="newfolder">New → Folder</div>
+        <div class="context-separator"></div>
+        <div class="context-item" data-action="display">Display settings</div>
+        <div class="context-item" data-action="personalize">Personalize</div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

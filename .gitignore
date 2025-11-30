@@ -17,7 +17,11 @@ env/
 .idea/
 *.swp
 *.swo
+.claude/
 
 # OS files
 .DS_Store
 Thumbs.db
+
+# Streamlit
+.streamlit/secrets.toml
